@@ -12,7 +12,7 @@ namespace CityInfo.API.Controllers
         public ActionResult<IEnumerable<PointOfInterestDto>> GetPointsOfInterest(int cityId)
         {
             var city = CitiesDataStore.Current.Cities.FirstOrDefault(c => c.Id == cityId);
-            
+
             if (city is null)
             {
                 return NotFound();
@@ -20,8 +20,8 @@ namespace CityInfo.API.Controllers
 
             return Ok(city.PointsOfInterest);
         }
-        [HttpGet("{pointOfInterestId}")]
-        public ActionResult<PointOfInterestDto> GetPointOfInterest (int cityId, int pointOfInterestId) 
+        [HttpGet("{pointOfInterestId}", Name = "GetPointOfInterest")]
+        public ActionResult<PointOfInterestDto> GetPointOfInterest(int cityId, int pointOfInterestId)
         {
             var city = CitiesDataStore.Current.Cities.FirstOrDefault(c => c.Id == cityId);
 
@@ -38,6 +38,33 @@ namespace CityInfo.API.Controllers
             }
 
             return Ok(pointOfInterest);
+        }
+        [HttpPost]
+        public ActionResult<PointOfInterestDto> CreatePointOfInterest (
+            int cityId,
+            [FromBody] PointOfInterestForCreationDto pointOfInterest) 
+        {
+            var city = CitiesDataStore.Current.Cities.FirstOrDefault(c => c.Id == cityId);
+            if (city is null) 
+            { 
+                return NotFound(); 
+            }
+
+            // demo purposes - needs refactoring
+            var maxPointOfInterestId = CitiesDataStore.Current.Cities.SelectMany(c => c.PointsOfInterest).Max(p => p.Id);
+
+            var finalPointOfInterest = new PointOfInterestDto()
+            {
+                Id = ++maxPointOfInterestId,
+                Name = pointOfInterest.Name,
+                Description = pointOfInterest.Description,
+            };
+
+            city.PointsOfInterest.Add(finalPointOfInterest);
+
+            return CreatedAtRoute("GetPointOfInterest", 
+                new { cityId = cityId, pointOfInterestId = finalPointOfInterest.Id },
+                finalPointOfInterest); 
         }
     }
 }
