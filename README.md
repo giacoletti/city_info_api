@@ -6,6 +6,7 @@ CityInfo API built in ASP.NET Core 6.
 
 - .NET 6
 - [Microsoft.AspNetCore.Mvc.NewtonsoftJson](https://www.nuget.org/packages/Microsoft.AspNetCore.Mvc.NewtonsoftJson/)
+
 (...)
 
 ## Acknowledgments
