@@ -26,19 +26,20 @@ namespace CityInfo.API.Controllers
             return Ok(_mapper.Map<IEnumerable<CityWithoutPointsOfInterestDto>>(cityEntities));
         }
         [HttpGet("{id}")]
-        public ActionResult<CityDto> GetCity(int id) 
+        public async Task<IActionResult> GetCity(int id, bool includePointsOfInterest = false) 
         {
-            /*// find city
-            var city = _citiesDataStore.Cities.FirstOrDefault(c => c.Id == id);
-            
-            if (city is null) 
+            var city = await _cityInfoRepository.GetCityAsync(id, includePointsOfInterest);
+            if (city is null)
             {
                 return NotFound();
             }
 
-            return Ok(city);*/
+            if (includePointsOfInterest)
+            {
+                return Ok(_mapper.Map<CityDto>(city));
+            }
 
-            return Ok();
+            return Ok(_mapper.Map<CityWithoutPointsOfInterestDto>(city));
         }
     }
 }
