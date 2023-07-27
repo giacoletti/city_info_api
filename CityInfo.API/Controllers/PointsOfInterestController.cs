@@ -57,33 +57,29 @@ namespace CityInfo.API.Controllers
 
             return Ok(_mapper.Map<PointOfInterestDto>(pointOfInterest));
         }
-        /*[HttpPost]
-        public ActionResult<PointOfInterestDto> CreatePointOfInterest (
+        [HttpPost]
+        public async Task<ActionResult<PointOfInterestDto>> CreatePointOfInterest (
             int cityId,
             [FromBody] PointOfInterestForCreationDto pointOfInterest) 
         {
-            var city = _citiesDataStore.Cities.FirstOrDefault(c => c.Id == cityId);
-            if (city is null) 
+            if (!await _cityInfoRepository.CityExistsAsync(cityId)) 
             { 
                 return NotFound(); 
             }
 
-            // demo purposes - needs refactoring
-            var maxPointOfInterestId = _citiesDataStore.Cities.SelectMany(c => c.PointsOfInterest).Max(p => p.Id);
+            var finalPointOfInterest = _mapper.Map<Entities.PointOfInterest>(pointOfInterest);
 
-            var finalPointOfInterest = new PointOfInterestDto()
-            {
-                Id = ++maxPointOfInterestId,
-                Name = pointOfInterest.Name,
-                Description = pointOfInterest.Description,
-            };
+            await _cityInfoRepository.AddPointOfInterestForCityAsync(cityId, finalPointOfInterest);
+            
+            await _cityInfoRepository.SaveChangesAsync();
 
-            city.PointsOfInterest.Add(finalPointOfInterest);
+            var createdPointOfInterestToReturn = _mapper.Map<Models.PointOfInterestDto>(finalPointOfInterest);
 
             return CreatedAtRoute("GetPointOfInterest", 
-                new { cityId = cityId, pointOfInterestId = finalPointOfInterest.Id },
-                finalPointOfInterest); 
+                new { cityId = cityId, pointOfInterestId = createdPointOfInterestToReturn.Id },
+                createdPointOfInterestToReturn); 
         }
+        /*
         [HttpPut("{pointOfInterestId}")]
         public ActionResult UpdatePointOfInterest(int cityId, int pointOfInterestId, [FromBody] PointOfInterestForUpdateDto pointOfInterest)
         {
