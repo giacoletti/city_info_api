@@ -11,16 +11,29 @@ namespace CityInfo.API.Services
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
         }
-        public async Task<IEnumerable<City>> GetCitiesAsync(string? name)
+        public async Task<IEnumerable<City>> GetCitiesAsync(string? name, string? searchQuery)
         {
-            if (string.IsNullOrEmpty(name))
+            if (string.IsNullOrEmpty(name) && string.IsNullOrWhiteSpace(searchQuery))
             { 
                 return await _context.Cities.OrderBy(c => c.Name).ToListAsync();
             }
 
-            name = name.Trim();
+            // collection to start from
+            var collection = _context.Cities as IQueryable<City>;
 
-            return await _context.Cities.Where(c => c.Name == name).OrderBy(c => c.Name).ToListAsync();
+            if (!string.IsNullOrWhiteSpace(name))
+            {
+                name = name.Trim();
+                collection = collection.Where(c => c.Name == name);
+            }
+
+            if (!string.IsNullOrWhiteSpace(searchQuery))
+            {
+                collection = collection.Where(c => c.Name.Contains(searchQuery) 
+                    || (c.Description != null && c.Description.Contains(searchQuery)));
+            }
+
+            return await collection.OrderBy(c => c.Name).ToListAsync();
         }
 
         public async Task<City?> GetCityAsync(int cityId, bool includePointsOfInterest)
